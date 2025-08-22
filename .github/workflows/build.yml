@@ -45,6 +45,7 @@ jobs:
       matrix:
         profile:
           - 64-ucrt
+          - 64_v2-ucrt
     uses: ./.github/workflows/build_per_profile.yml
     with:
       profile: ${{ matrix.profile }}
@@ -70,7 +71,7 @@ jobs:
           branch="${branch%%.*}"
           echo "branch=${branch}" >> "$GITHUB_OUTPUT"
           mingw_list=(
-            {64}-{ucrt}
+            {64,64_v2}-{ucrt}
           )
           echo "mingw_list=${mingw_list[*]}" >> "$GITHUB_OUTPUT"
           xmake_list=(
