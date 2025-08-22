@@ -1,61 +1,57 @@
 name: Build
 
-on: [push, pull_request]
-
+on:
+  - push
+  - pull_request
+  
 jobs:
   download_source:
     name: Download source
     strategy:
       fail-fast: true
       matrix:
-        branch: [16, 15, 14, 13]
+        branch:
+          - 15
+          - 14
+          - 13
     uses: ./.github/workflows/download_source_per_branch.yml
     with:
       branch: ${{ matrix.branch }}
-
+      
   build_container:
     name: Build container
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-
       - name: Build container
         run: |
-          podman build -t mingw-lite/buildenv support/buildenv
-
+          podman build -t mingw-lite/buildenv support/buildenv 
           mkdir assets
           podman save mingw-lite/buildenv:latest | zstd -o assets/buildenv.tar.zst
-
+          
       - name: Upload container
         uses: actions/upload-artifact@v4
         with:
           name: buildenv
           path: assets/buildenv.tar.zst
-
+          
   build:
     name: Build (${{ matrix.profile }})
-    needs: [download_source, build_container]
+    needs:
+      - download_source
+      - build_container
     strategy:
       fail-fast: false
       matrix:
-        profile: [
-          64-mcf, 64-win32, 64-ucrt, 64-msvcrt,
-          32-mcf, 32-win32, 32-ucrt, 32-msvcrt,
-
-          # profile variants for micro architectures
-          64_v2-mcf, 64_v2-win32, 64_v2-ucrt, 64_v2-msvcrt,
-
-          # profile variants for earlier Windows versions
-          64-ucrt_ws2003, 64-msvcrt_ws2003,
-          32-ucrt_winxp, 32-msvcrt_win2000,
-          32_686-msvcrt_winnt40,
-          32_486-msvcrt_winnt40,
-        ]
+        profile:
+          - 64-ucrt
     uses: ./.github/workflows/build_per_profile.yml
     with:
       profile: ${{ matrix.profile }}
-      release_skip_profile: ${{ contains(fromJson('["64-ucrt_ws2003", "64-msvcrt_ws2003", "32-ucrt_winxp"]'), matrix.profile) }}
-
+      release_skip_profile: >-
+        ${{ contains(fromJson('["64-ucrt_ws2003", "64-msvcrt_ws2003",
+        "32-ucrt_winxp"]'), matrix.profile) }}
+        
   release:
     name: Release
     needs: build
@@ -65,46 +61,30 @@ jobs:
       - uses: ConorMacBride/install-package@v1
         with:
           apt: 7zip libarchive-tools
-
+          
       - name: Determine parameter
         id: param
         run: |
           ref_name="${{ github.ref_name }}"
           branch="${ref_name%%-*}"
           branch="${branch%%.*}"
-
           echo "branch=${branch}" >> "$GITHUB_OUTPUT"
-
-          if [[ $branch == 16 ]] ; then
-            echo "prerelease=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "prerelease=false" >> "$GITHUB_OUTPUT"
-          fi
-
           mingw_list=(
-            {64,64_v2,32}-{mcf,win32,ucrt,msvcrt}
-            32-msvcrt_win2000
-            32_{686,486}-msvcrt_winnt40
+            {64}-{ucrt}
           )
           echo "mingw_list=${mingw_list[*]}" >> "$GITHUB_OUTPUT"
-
           xmake_list=(
-            32-msvcrt_win2000
-            32_{686,486}-msvcrt_winnt40
           )
           echo "xmake_list=${xmake_list[*]}" >> "$GITHUB_OUTPUT"
-
       - uses: actions/download-artifact@v4
         with:
           pattern: mingw*
           path: dist
           merge-multiple: true
-
       - name: 7z archive
         run: |
           cd dist
           jobs=$(nproc)
-
           for pn in ${{ steps.param.outputs.mingw_list }} ; do
             {
               dn=mingw$pn-${{ steps.param.outputs.branch }}
@@ -119,7 +99,6 @@ jobs:
             done
           done
           wait
-
           for pn in ${{ steps.param.outputs.xmake_list }} ; do
             {
               dn=mingw$pn-${{ steps.param.outputs.branch }}
@@ -134,7 +113,6 @@ jobs:
             done
           done
           wait
-
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
