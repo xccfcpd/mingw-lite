@@ -33,10 +33,23 @@
 #ifdef __cpp_if_consteval
   #define if_consteval if consteval
   #define if_not_consteval if !consteval
-#elif __has_builtin(__builtin_is_constant_evaluated)
-  #define if_consteval if (__builtin_is_constant_evaluated())
-  #define if_not_consteval if (!__builtin_is_constant_evaluated())
+#elif defined(__has_builtin)
+  // cannot use `defined(...) && __has_builtin(...)`
+  // error: missing binary operator before token "("
+  #if __has_builtin(__builtin_is_constant_evaluated)
+    #define if_consteval if (__builtin_is_constant_evaluated())
+    #define if_not_consteval if (!__builtin_is_constant_evaluated())
+  #elif defined(__cpp_if_constexpr)
+    #define if_consteval if constexpr (true)
+    #define if_not_consteval if constexpr (false)
+  #else
+    #define if_consteval if (true)
+    #define if_not_consteval if (false)
+  #endif
+#elif defined(__cpp_if_constexpr)
+  #define if_consteval if constexpr (true)
+  #define if_not_consteval if constexpr (false)
 #else
-  #define if_consteval if (false)
-  #define if_not_consteval if (true)
+  #define if_consteval if (true)
+  #define if_not_consteval if (false)
 #endif

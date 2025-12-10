@@ -2,6 +2,9 @@ set_plat('mingw')
 add_rules('mode.debug', 'mode.release', 'mode.minsizerel')
 set_languages('c11', 'cxx14')
 
+option('no-nested-ns')
+  set_default(false)
+
 target('intl')
   set_kind('static')
   add_cxxflags(
@@ -9,7 +12,15 @@ target('intl')
     '-fno-threadsafe-statics')
   add_includedirs('include', {public = true})
   set_exceptions('none')
-  add_defines('NS_NOSTL=intl::stl')
+  if has_config('no-nested-ns') then
+    add_defines('NS_NOSTL=intl_stl')
+    add_defines('stl=intl_stl')
+  else
+    add_defines('NS_NOSTL=intl::stl')
+  end
+  add_defines(
+    'WINVER=0x0600',
+    '_WIN32_WINNT=0x0600')
   add_files('src/*.cc')
   add_headerfiles('include/libintl.h')
 
