@@ -179,7 +179,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     rev = '5',
 
     # ABI critical: 2025-08-08
-    mcfgthread = '2.1-ga.1',
+    mcfgthread = '2.2-ga.2',
     mingw = '13.0.0',
 
     binutils = '2.45.1',
@@ -192,7 +192,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.2',
     pdcurses = '3.9',
     pkgconf = '2.5.1',
-    python = '3.14.0',
+    python = '3.12.12',
     z = '1.3.1',
   ),
   '14': BranchVersions(
@@ -200,21 +200,21 @@ BRANCHES: Dict[str, BranchVersions] = {
     rev = '5',
 
     # ABI critical: 2024-08-01
-    mcfgthread = '1.8-ga.4',
-    mingw = '12.0.0',
+    mcfgthread = '2.2-ga.2',
+    mingw = '13.0.0',
 
     # freeze: 2024-12-21
-    binutils = '2.43.1',
-    expat = '2.6.4',
-    gdb = '15.2',
+    binutils = '2.45.1',
+    expat = '2.7.3',
+    gdb = '16.3',
     gmp = '6.3.0',
     iconv = '1.18',
     make = '4.4.1',
     mpc = '1.3.1',
     mpfr = '4.2.2',
     pdcurses = '3.9',
-    pkgconf = '2.3.0',
-    python = '3.13.9',
+    pkgconf = '2.5.1',
+    python = '3.12.12',
     z = '1.3.1',
   ),
   '13': BranchVersions(
@@ -222,21 +222,21 @@ BRANCHES: Dict[str, BranchVersions] = {
     rev = '5',
 
     # trace back: 2023-12-22
-    binutils = '2.41',
-    expat = '2.5.0',
-    gdb = '14.2',
+    binutils = '2.45.1',
+    expat = '2.7.3',
+    gdb = '16.3',
     gmp = '6.3.0',
-    iconv = '1.17',
+    iconv = '1.18',
     make = '4.4.1',
     # postponed until 1.8-ga.3 (2024-08-01)
     # - bootstrapping from scratch made easy
     # - gcc runtime library exception added
-    mcfgthread = '1.8-ga.4',
-    mingw = '11.0.1',
+    mcfgthread = '2.2-ga.2',
+    mingw = '13.0.0',
     mpc = '1.3.1',
     mpfr = '4.2.2',
     pdcurses = '3.9',
-    pkgconf = '2.1.1',
+    pkgconf = '2.5.1',
     python = '3.12.12',
     z = '1.3.1',
   ),
