@@ -113,19 +113,19 @@ BRANCHES: Dict[str, BranchVersions] = {
 
     # ABI critical: 2024-08-01
     mcfgthread = '1.8-ga.4',
-    mingw = '12.0.0',
+    mingw = '13.0.0',
 
     # freeze: 2024-12-21
-    binutils = '2.43.1',
-    expat = '2.6.4',
-    gdb = '15.2',
+    binutils = '2.46.0',
+    expat = '2.7.4',
+    gdb = '17.1',
     gmp = '6.3.0',
     iconv = '1.18',
     make = '4.4.1',
     mpc = '1.3.1',
     mpfr = '4.2.2',
     pdcurses = '3.9',
-    pkgconf = '2.3.0',
+    pkgconf = '2.5.1',
     python = '3.13.12',
     z = '1.3.2',
   ),
