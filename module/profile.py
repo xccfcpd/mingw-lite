@@ -108,8 +108,10 @@ BRANCHES: Dict[str, BranchVersions] = {
     gcc = '14.3.0',
     rev = '6.1',
 
-    short_import = False,
-    utf8_thunk = False,
+    # short_import = False,
+    # utf8_thunk = False,
+    short_import = True,
+    utf8_thunk = True,
 
     # ABI critical: 2024-08-01
     mcfgthread = '1.8-ga.4',
