@@ -6,10 +6,19 @@
 
 ## Use
 
-- Native toolchain: the toolchain is static by default.
-  - Profiles that target Windows XP (NT 5.1, see below) or later provide optional shared runtime libraries.
-  - To opt-in shared runtime libraries, copy `$prefix/lib/shared/*` to `$prefix/`.
-- Cross toolchain: tools are organized by package. Mount required packages to `/usr/local`:
+MinGW Lite is primarily cross-built Windows native toolchain (canadian cross), with build = x86_64-linux-gnu, host = target = {x86_64,i686}-w64-mingw32.
+
+The cross toolchain that is used to build Windows native toolchain (build = host = x86_64-linux-gnu, target = {x86_64,i686}-w64-mingw32) is also uploaded to releases for internal use and downstream integration.
+
+### Windows Native Toolchain
+
+The usage is almost identical to [other MinGW-w64 distributions](https://mingw-w64.org/doku.php/download/mingw-builds): download, extract, and add to PATH.
+
+The toolchain is static by default. Profiles that target Windows XP (NT 5.1, see below) or later provide optional shared runtime libraries. To opt-in shared runtime libraries, copy `$prefix/lib/shared/*` to `$prefix/`.
+
+### Cross Toolchain
+
+Tools are organized by package. Mount required packages to `/usr/local`:
   ```bash
   layers=(/path/to/mingw/AAB/{binutils,crt,gcc,headers}/usr/local)
   lowerdir=$(IFS=:; echo "${layers[*]}")
