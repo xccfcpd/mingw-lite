@@ -1,6 +1,8 @@
 LIBRARY kernel32.dll
 EXPORTS
+  __ms_CreateSymbolicLinkW == CreateSymbolicLinkW
   __ms_GetDynamicTimeZoneInformation == GetDynamicTimeZoneInformation
+  __ms_GetFileInformationByHandleEx == GetFileInformationByHandleEx
   __ms_LoadLibraryA == LoadLibraryA
   __ms_MapViewOfFileExNuma == MapViewOfFileExNuma
   __ms_MultiByteToWideChar == MultiByteToWideChar

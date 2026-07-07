@@ -160,6 +160,10 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     if v.major >= 16:
       patch(paths.src_dir.gcc, paths.patch_dir / 'gcc/fix-win32-winnt-protected-declaration.patch')
 
+    # libstdc++: always enable symlink
+    if v.major >= 17:
+      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'libstdc++-always-enable-symlink.patch')
+
     # Disable vectorized lexer
     if ver.min_os.major < 5:
       if v.major >= 15:

@@ -1,0 +1,45 @@
+diff --git a/libstdc++-v3/src/filesystem/ops-common.h b/libstdc++-v3/src/filesystem/ops-common.h
+index cdb4a1ca0ca..c9aab229511 100644
+--- a/libstdc++-v3/src/filesystem/ops-common.h
++++ b/libstdc++-v3/src/filesystem/ops-common.h
+@@ -25,6 +25,40 @@
+ #ifndef _GLIBCXX_OPS_COMMON_H
+ #define _GLIBCXX_OPS_COMMON_H 1
+ 
++// ODR: although this is only required by c++17/fs_ops.cc
++// all files that include this file (+filesystem/ops.cc) should see same definition.
++#ifdef _GLIBCXX_FILESYSTEM_IS_WINDOWS
++# if _WIN32_WINNT < 0x0600
++extern "C"
++{
++#  define SYMBOLIC_LINK_FLAG_DIRECTORY (0x1)
++#  define SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE (0x2)
++
++WINBASEAPI BOOLEAN APIENTRY CreateSymbolicLinkW (LPCWSTR lpSymlinkFileName, LPCWSTR lpTargetFileName, DWORD dwFlags);
++
++typedef enum _FILE_INFO_BY_HANDLE_CLASS {
++  FileBasicInfo,
++  FileStandardInfo,
++  FileNameInfo,
++  FileRenameInfo,
++  FileDispositionInfo,
++  FileAllocationInfo,
++  FileEndOfFileInfo,
++  FileStreamInfo,
++  FileCompressionInfo,
++  FileAttributeTagInfo,
++} FILE_INFO_BY_HANDLE_CLASS;
++
++typedef struct _FILE_ATTRIBUTE_TAG_INFO {
++  DWORD FileAttributes;
++  DWORD ReparseTag;
++} FILE_ATTRIBUTE_TAG_INFO;
++
++WINBASEAPI WINBOOL WINAPI GetFileInformationByHandleEx (HANDLE hFile, FILE_INFO_BY_HANDLE_CLASS FileInformationClass, LPVOID lpFileInformation, DWORD dwBufferSize);
++}
++# endif
++#endif // _GLIBCXX_FILESYSTEM_IS_WINDOWS
++
+ #include <chrono>
+ #include <bits/move.h> // std::__exchange
+ 

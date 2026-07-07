@@ -16,6 +16,7 @@ EXPORTS
   __ms_CreateProcessW@40 == CreateProcessW
   __ms_CreateSemaphoreA@16 == CreateSemaphoreA
   __ms_CreateSemaphoreW@16 == CreateSemaphoreW
+  __ms_CreateSymbolicLinkW@12 == CreateSymbolicLinkW
   __ms_CreateThread@24 == CreateThread
   __ms_CreateWaitableTimerA@12 == CreateWaitableTimerA
   __ms_CreateWaitableTimerW@12 == CreateWaitableTimerW
@@ -41,6 +42,7 @@ EXPORTS
   __ms_GetFileAttributesExA@12 == GetFileAttributesExA
   __ms_GetFileAttributesExW@12 == GetFileAttributesExW
   __ms_GetFileAttributesW@4 == GetFileAttributesW
+  __ms_GetFileInformationByHandleEx@16 == GetFileInformationByHandleEx
   __ms_GetFileSizeEx@8 == GetFileSizeEx
   __ms_GetFullPathNameA@16 == GetFullPathNameA
   __ms_GetFullPathNameW@16 == GetFullPathNameW

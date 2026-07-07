@@ -265,7 +265,9 @@ target('overlay-kernel32')
     end
     if ntddi_version() < ntddi_vista() and has_config('thunk-xp') then
       add_files(
+        'kernel32/6.0/CreateSymbolicLinkW.cc',
         'kernel32/6.0/GetDynamicTimeZoneInformation.cc',
+        'kernel32/6.0/GetFileInformationByHandleEx.cc',
         'kernel32/6.0/MapViewOfFileExNuma.cc')
     end
   end
