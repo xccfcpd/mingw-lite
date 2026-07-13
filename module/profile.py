@@ -191,22 +191,22 @@ BRANCHES: Dict[str, BranchVersions] = {
     native_tls = False,
     short_import = False,
     thunk_free_os = Version('5.1'),
-    utf8_thunk = False,
+    utf8_thunk = True,
 
     # ABI critical: 2025-08-08
     mcfgthread = '2.1-ga.1',
-    mingw = '13.0.0',
+    mingw = '14.0.0',
     nowide = '11.3.0',  # 11.3.1 is not ABI compatible
 
     # freeze: 2025-12-21
-    binutils = '2.45.1',
-    expat = '2.7.5',
+    binutils = '2.46.1',
+    expat = '2.8.2',
     gdb = '17.2',
     gmp = '6.3.0',
-    iconv = '1.18',
+    iconv = '1.19',
     isl = '0.27',
     make = '4.4.1',
-    mpc = '1.3.1',
+    mpc = '1.4.1',
     mpfr = '4.2.2',
     pdcurses = '3.9',
     pkgconf = '2.5.1',
