@@ -229,7 +229,7 @@ BRANCHES: Dict[str, BranchVersions] = {
 
     # ABI critical: 2024-08-01
     mcfgthread = '1.8-ga.4',
-    mingw = '12.0.0',
+    mingw = '14.0.0',
     nowide = '11.3.0',  # 11.3.1 is not ABI compatible
 
     # freeze: 2024-12-21
