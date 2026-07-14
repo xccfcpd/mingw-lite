@@ -90,10 +90,7 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     # However, GCC tries to locate the tools in $prefix/$triplet and then falls back to PATH.
     # It will fail without PATH, or even worse, calls unexpected tools from other toolchain.
     # We adjust the strategy to make it work without PATH.
-    if v.major >= 15:
-      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'use-linux-style-tooldir_15.patch')
-    else:
-      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'use-linux-style-tooldir_13.patch')
+    patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'use-linux-style-tooldir.patch')
 
     # Use mingw32-make for LTO
     # parallel LTO may call incompatible, POSIX `make.exe`
