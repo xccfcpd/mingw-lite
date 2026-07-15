@@ -1,0 +1,40 @@
+diff --git a/gcc/gcc-ar.cc b/gcc/gcc-ar.cc
+index 5e5b63e1988..849640dfc57 100644
+--- a/gcc/gcc-ar.cc
++++ b/gcc/gcc-ar.cc
+@@ -109,6 +109,13 @@ setup_prefixes (const char *exec_path)
+ 				dir_separator, target_version, dir_separator,
+ 				self_tooldir_prefix, NULL);
+ 
++#ifndef CROSS_DIRECTORY_STRUCTURE
++  const char *native_tooldir_prefix = concat (self_exec_prefix, target_machine,
++				dir_separator, target_version, dir_separator,
++				tooldir_base_prefix, NULL);
++  prefix_from_string (concat (native_tooldir_prefix, "bin", NULL), &target_path);
++#endif
++
+   /* Add the target-specific tool bin prefix.  */
+   prefix_from_string (concat (self_tooldir_prefix, "bin", NULL), &target_path);
+ 
+diff --git a/gcc/gcc.cc b/gcc/gcc.cc
+index 319a045c285..78ec8edc1db 100644
+--- a/gcc/gcc.cc
++++ b/gcc/gcc.cc
+@@ -5380,6 +5380,17 @@ process_command (unsigned int decoded_options_count,
+ 	      accel_dir_suffix, dir_separator_str, tooldir_prefix2, NULL);
+   free (tooldir_prefix2);
+ 
++#ifndef CROSS_DIRECTORY_STRUCTURE
++  char *native_tooldir_prefix
++    = concat (gcc_exec_prefix ? gcc_exec_prefix : standard_exec_prefix,
++	      spec_host_machine, dir_separator_str, spec_version,
++	      accel_dir_suffix, dir_separator_str, tooldir_base_prefix, NULL);
++
++  add_prefix (&exec_prefixes,
++	      concat (native_tooldir_prefix, "bin", dir_separator_str, NULL),
++	      "BINUTILS", PREFIX_PRIORITY_LAST, 0, 0);
++  free (native_tooldir_prefix);
++#endif
+   add_prefix (&exec_prefixes,
+ 	      concat (tooldir_prefix, "bin", dir_separator_str, NULL),
+ 	      "BINUTILS", PREFIX_PRIORITY_LAST, 0, 0);
