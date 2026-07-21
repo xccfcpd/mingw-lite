@@ -94,9 +94,9 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     if ver.fpmath:
       config_flags.append(f'--with-fpmath={ver.fpmath}')
     if ver.native_tls:
-      config_flags.append('--enable-tls=yes')
+      config_flags.append('--enable-tls')
     else:
-      config_flags.append('--enable-tls=no')
+      config_flags.append('--disable-tls')
 
     configure(build_dir, [
       f'--prefix=/usr/local',
@@ -306,8 +306,6 @@ def _crt_host(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
     thunk_src_dir = paths.in_tree_src_dir.thunk
 
     config_flags: List[str] = []
-    if ver.native_tls:
-      config_flags.append('--native-tls=y')
     if ver.utf8_thunk:
       config_flags.append('--profile=toolchain-utf8')
     else:
@@ -373,8 +371,6 @@ def _crt_target_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Name
     thunk_src_dir = paths.in_tree_src_dir.thunk
 
     config_flags: List[str] = []
-    if ver.native_tls:
-      config_flags.append('--native-tls=y')
     if ver.min_os.major < 6:
       if ver.thunk_free:
         config_flags.append('--thunk-xp=n')

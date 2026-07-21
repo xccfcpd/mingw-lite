@@ -34,6 +34,8 @@ def build_ABB_test_driver(ver: BranchProfile, paths: ProjectPaths, config: argpa
     f'-DDEBUG_BUILD_DIR="{debug_build_dir}"',
     f'-DRELEASE_BUILD_DIR="{release_build_dir}"',
   ]
+  if ver.native_tls:
+    flags.append('-DNATIVE_TLS')
   if ver.utf8_thunk:
     flags.append('-DENABLE_UTF8')
 
@@ -209,8 +211,6 @@ def _crt_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     thunk_src_dir = paths.in_tree_src_dir.thunk
 
     config_flags: List[str] = []
-    if ver.native_tls:
-      config_flags.append('--native-tls=y')
     if ver.min_os.major < 6:
       if ver.thunk_free:
         config_flags.append('--thunk-xp=n')
@@ -520,9 +520,9 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     if ver.utf8_thunk:
       config_flags.append('--disable-win32-utf8-manifest')
     if ver.native_tls:
-      config_flags.append('--enable-tls=yes')
+      config_flags.append('--enable-tls')
     else:
-      config_flags.append('--enable-tls=no')
+      config_flags.append('--disable-tls')
 
     configure(build_dir, [
       '--prefix=',
