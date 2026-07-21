@@ -68,6 +68,8 @@ class ProfileInfo:
   win32_winnt: int
   min_os: Version
 
+  lang_lto: bool
+  nls: bool
   profile_opt_lto: bool
   profile_opt_lv: Optional[OptLv]
   utf8_user_crt: bool
@@ -338,6 +340,8 @@ def _create_profile(
   thread: str,
   min_os: str,
 
+  lang_lto: bool = True,
+  nls: bool = True,
   opt_lto: bool = False,
   opt_lv: Optional[OptLv] = None,
   u8crt: bool = False,
@@ -361,6 +365,8 @@ def _create_profile(
     win32_winnt = 0x0A00,
     min_os = Version(min_os),
 
+    lang_lto = lang_lto,
+    nls = nls,
     profile_opt_lto = opt_lto,
     profile_opt_lv = opt_lv,
     utf8_user_crt = u8crt,
@@ -410,10 +416,10 @@ PROFILES: Dict[str, Optional[ProfileInfo]] = {
   '64-u8crt': _create_profile('64', 'ucrt', 'posix', '5.2', u8crt = True),
   '32-u8crt': _create_profile('32', 'ucrt', 'posix', '5.1', u8crt = True),
 
-  '64s-ucrt': _create_profile('64', 'ucrt', 'posix', '6.0', opt_lv = OptLv.Os),
-  '64z-ucrt': _create_profile('64', 'ucrt', 'posix', '6.0', opt_lv = OptLv.Oz),
-  '32s-ucrt': _create_profile('32', 'ucrt', 'posix', '6.0', opt_lv = OptLv.Os),
-  '32z-ucrt': _create_profile('32', 'ucrt', 'posix', '6.0', opt_lv = OptLv.Oz),
+  '64s-ucrt': _create_profile('64', 'ucrt', 'posix', '6.0', lang_lto = False, nls = False, opt_lv = OptLv.Os),
+  '64z-ucrt': _create_profile('64', 'ucrt', 'posix', '6.0', lang_lto = False, nls = False, opt_lv = OptLv.Oz),
+  '32s-ucrt': _create_profile('32', 'ucrt', 'posix', '6.0', lang_lto = False, nls = False, opt_lv = OptLv.Os),
+  '32z-ucrt': _create_profile('32', 'ucrt', 'posix', '6.0', lang_lto = False, nls = False, opt_lv = OptLv.Oz),
 }
 
 def _gcc_16_requires_vista(

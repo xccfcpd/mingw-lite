@@ -109,6 +109,13 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
     build_dir = paths.src_dir.binutils / 'build-ABB'
     ensure(build_dir)
 
+    config_flags: List[str] = []
+
+    if ver.nls:
+      config_flags.append('--enable-nls')
+    else:
+      config_flags.append('--disable-nls')
+
     configure(build_dir, [
       '--prefix=',
       f'--host={ver.target}',
@@ -120,10 +127,10 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
       # features
       '--disable-install-libbfd',
       '--disable-multilib',
-      '--enable-nls',
       # packages
       '--without-debuginfod',
       '--with-system-zlib',
+      *config_flags,
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
         opt_lv = ver.opt_lv,
@@ -531,6 +538,14 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       config_flags.append('--enable-tls')
     else:
       config_flags.append('--disable-tls')
+    if ver.lang_lto:
+      config_flags.append('--enable-lto')
+    else:
+      config_flags.append('--disable-lto')
+    if ver.nls:
+      config_flags.append('--enable-nls')
+    else:
+      config_flags.append('--disable-nls')
 
     configure(build_dir, [
       '--prefix=',
@@ -549,7 +564,6 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--disable-libmpx',
       '--disable-libstdcxx-pch',
       '--disable-multilib',
-      '--enable-nls',
       f'--enable-threads={ver.thread}',
       '--disable-win32-registry',
       # packages
@@ -760,7 +774,14 @@ def _gmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     build_dir = paths.src_dir.make / 'build-ABB'
     ensure(build_dir)
 
-    c_extra = []
+    config_flags: List[str] = []
+
+    if ver.nls:
+      config_flags.append('--enable-nls')
+    else:
+      config_flags.append('--disable-nls')
+
+    c_extra: List[str] = []
 
     # GCC 15 defaults to C23, in which `foo()` means `foo(void)` instead of `foo(...)`.
     if v_gcc.major >= 15 and v < Version('4.5'):
@@ -771,7 +792,7 @@ def _gmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--program-prefix=mingw32-',
       f'--host={ver.target}',
       f'--build={config.build}',
-      '--enable-nls',
+      *config_flags,
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
         c_extra = c_extra,
