@@ -35,6 +35,10 @@ release_old_profile = [
 beyond_profile = [
   # u8crt
   '64-u8crt', '32-u8crt',
+
+  # Os, Oz
+  '64s-ucrt', '64z-ucrt',
+  '32s-ucrt', '32z-ucrt',
 ]
 
 exclude_profile_branch = [
@@ -71,6 +75,11 @@ exclude_profile_branch = [
     for abi in ['mcf', 'win32', 'ucrt', 'msvcrt']
   ),
   *( # u8crt
+    {'profile': p, 'branch': b}
+    for p in ['64-u8crt', '32-u8crt']
+    for b in ['16', '16+emutls', '15', '14', '13']
+  ),
+  *( # Os, Oz
     {'profile': p, 'branch': b}
     for p in ['64-u8crt', '32-u8crt']
     for b in ['16', '16+emutls', '15', '14', '13']

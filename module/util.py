@@ -7,15 +7,38 @@ import shutil
 import struct
 import subprocess
 from tempfile import TemporaryDirectory
-from typing import Iterable, List, Optional, Sequence, Union
+from typing import Dict, Iterable, List, Optional, Sequence, Union
 
 from module.path import ProjectPaths
 from module.platform import is_genuine_linux, is_wsl1
+from module.profile import OptLv
 
 XMAKE_ARCH_MAP = {
   '32': 'i386',
   '64': 'x86_64',
   'arm64': 'aarch64',
+}
+
+_OPT_LV_2_CMAKE_TYPE_MAP: Dict[OptLv, str] = {
+  OptLv.O0:    'Debug',
+  OptLv.Og:    'Debug',
+  OptLv.O1:    'MinSizeRel',
+  OptLv.Oz:    'MinSizeRel',
+  OptLv.Os:    'MinSizeRel',
+  OptLv.O2:    'Release',
+  OptLv.O3:    'Release',
+  OptLv.Ofast: 'Release',
+}
+
+_OPT_LV_2_MESON_TYPE_MAP: Dict[OptLv, str] = {
+  OptLv.O0:    'debug',
+  OptLv.Og:    'debug',
+  OptLv.O1:    'minsize',
+  OptLv.Oz:    'minsize',
+  OptLv.Os:    'minsize',
+  OptLv.O2:    'release',
+  OptLv.O3:    'release',
+  OptLv.Ofast: 'release',
 }
 
 def add_objects_to_static_lib(ar: str, lib: Path, objects: Iterable[Path]):
@@ -49,21 +72,17 @@ def cflags_B(
   ld_extra: List[str] = [],
   c_extra: List[str] = [],
   cxx_extra: List[str] = [],
-  optimize_for_speed: bool = False,
+  opt_lv: OptLv = OptLv.O2,
   lto: bool = False,
 ) -> List[str]:
   cpp = ['-DNDEBUG']
   common = ['-pipe']
   ld = ['-s']
   if lto:
-    # lto does not work with -Os
-    common.extend(['-O2', '-flto'])
-    ld.extend(['-O2', '-flto'])
+    common.extend([opt_lv.value, '-flto'])
+    ld.extend([opt_lv.value, '-flto'])
   else:
-    if optimize_for_speed:
-      common.append('-O2')
-    else:
-      common.append('-Os')
+    common.append(opt_lv.value)
   return [
     f'CPPFLAGS{suffix}=' + ' '.join(cpp + cpp_extra),
     f'CFLAGS{suffix}=' + ' '.join(common + common_extra + c_extra),
@@ -100,21 +119,15 @@ def cmake_flags_A() -> List[str]:
   ]
 
 def cmake_flags_B(
-  optimize_for_speed: bool = False,
+  opt_lv: OptLv = OptLv.Os,
   lto: bool = False,
 ) -> List[str]:
-  build_type = ''
   lto_flag = []
-
-  if optimize_for_speed:
-    build_type = 'Release'
-  else:
-    build_type = 'MinSizeRel'
   if lto:
     lto_flag = ['-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON']
 
   return [
-    f'-DCMAKE_BUILD_TYPE={build_type}',
+    f'-DCMAKE_BUILD_TYPE={_OPT_LV_2_CMAKE_TYPE_MAP[opt_lv]}',
     *lto_flag,
   ]
 
@@ -241,20 +254,16 @@ def meson_flags_B(
   ld_extra: List[str] = [],
   c_extra: List[str] = [],
   cxx_extra: List[str] = [],
-  optimize_for_speed: bool = False,
+  opt_lv: OptLv = OptLv.Os,
 ) -> List[str]:
   cpp = ['-DNDEBUG']
   common = ['-pipe']
-  if optimize_for_speed:
-    build_type = 'minsize'
-  else:
-    build_type = 'release'
   return [
     '-Dc_args=' + ' '.join(cpp + cpp_extra + common + common_extra + c_extra),
     '-Dc_link_args=' + ' '.join(ld_extra),
     '-Dcpp_args=' + ' '.join(cpp + cpp_extra + common + common_extra + cxx_extra),
     '-Dcpp_link_args=' + ' '.join(ld_extra),
-    f'--buildtype={build_type}',
+    f'--buildtype={_OPT_LV_2_MESON_TYPE_MAP[opt_lv]}',
     '--strip',
   ]
 

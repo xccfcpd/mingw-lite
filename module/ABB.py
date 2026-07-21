@@ -13,7 +13,7 @@ from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
 from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, common_cross_layers, dt_sidecar_dir, ensure, extract_shared_libs, overlayfs_ro, remove_info_main_menu, strip_pe_tls_directory
-from module.util import cflags_B, configure, make_custom, make_default, make_destdir_install
+from module.util import cflags_A, cflags_B, configure, make_custom, make_default, make_destdir_install
 from module.util import cmake_build, cmake_config, cmake_flags_B, cmake_install
 from module.util import meson_build, meson_config, meson_flags_B, meson_install
 from module.util import xmake_build, xmake_config, xmake_install
@@ -126,7 +126,7 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
       '--with-system-zlib',
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-        optimize_for_speed = ver.opt_speed,
+        opt_lv = ver.opt_lv,
         lto = ver.profile_opt_lto,
       ),
       f'AR={ver.target}-gcc-ar',
@@ -195,7 +195,7 @@ def _crt0(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f'--with-default-msvcrt={ver.default_crt}',
       f'--with-default-win32-winnt=0x{max(ver.win32_winnt, 0x0400):04X}',
       *multilib_flags,
-      *cflags_B(optimize_for_speed = ver.opt_speed),
+      *cflags_B(opt_lv = ver.opt_lv),
       # create modern (short) import libraries
       # https://github.com/mingw-w64/mingw-w64/issues/149
       'DLLTOOL=dlltool-wrapper',
@@ -336,7 +336,7 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
       '--enable-static',
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-        optimize_for_speed = ver.opt_speed,
+        opt_lv = ver.opt_lv,
       ),
     ])
     make_default(build_dir, config.jobs)
@@ -394,7 +394,7 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
         '--prefix', '/',
         *meson_flags_B(
           cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-          optimize_for_speed = ver.opt_speed,
+          opt_lv = ver.opt_lv,
         ),
       ],
       build_dir = build_dir,
@@ -441,7 +441,7 @@ def _nowide(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
         '-DCMAKE_INSTALL_PREFIX=',
         '-DBUILD_SHARED_LIBS=OFF',
         *cmake_flags_B(
-          optimize_for_speed = ver.opt_speed,
+          opt_lv = ver.opt_lv,
         ),
       ],
       build_dir = build_dir,
@@ -473,7 +473,7 @@ def _nowide(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
         '-DCMAKE_INSTALL_PREFIX=',
         '-DBUILD_SHARED_LIBS=ON',
         *cmake_flags_B(
-          optimize_for_speed = ver.opt_speed,
+          opt_lv = ver.opt_lv,
         ),
       ],
       build_dir = build_dir,
@@ -559,15 +559,16 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--with-system-zlib',
       '--with-tune=generic',
       *config_flags,
+      *cflags_A('_FOR_BUILD'),
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-        optimize_for_speed = ver.opt_speed,
+        opt_lv = ver.opt_lv,
         lto = ver.profile_opt_lto,
       ),
       *cflags_B('_FOR_TARGET',
         # CPPFLAGS_FOR_TARGET is not passed
         common_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-        optimize_for_speed = ver.opt_speed,
+        opt_lv = ver.opt_lv,
       ),
       f'AR={ver.target}-gcc-ar',
       f'RANLIB={ver.target}-gcc-ranlib',
@@ -674,7 +675,7 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
         # workaround: bfd and gnulib disagree about i686 time_t
         '-D__MINGW_USE_VC2005_COMPAT',
       ],
-      optimize_for_speed = ver.opt_speed,
+      opt_lv = ver.opt_lv,
     )
 
     configure(build_dir, [
@@ -774,7 +775,7 @@ def _gmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
         c_extra = c_extra,
-        optimize_for_speed = ver.opt_speed,
+        opt_lv = ver.opt_lv,
       ),
     ])
     make_default(build_dir, config.jobs)
@@ -809,7 +810,7 @@ def _pkgconf(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace
         '-Dtests=disabled',
         *meson_flags_B(
           cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-          optimize_for_speed = ver.opt_speed,
+          opt_lv = ver.opt_lv,
         ),
       ],
       build_dir = build_dir,
