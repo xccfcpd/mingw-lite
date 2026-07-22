@@ -12,11 +12,17 @@ from module.alt_crt import generate_thunk_revert_map, postprocess_crt_import_lib
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
-from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, common_cross_layers, dt_sidecar_dir, ensure, extract_shared_libs, overlayfs_ro, remove_info_main_menu
-from module.util import cflags_B, configure, make_custom, make_default, make_destdir_install
+from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, common_cross_layers, dt_sidecar_dir, ensure, extract_shared_libs, overlayfs_ro, remove_info_main_menu, strip_pe_tls_directory
+from module.util import cflags_A, cflags_B, configure, make_custom, make_default, make_destdir_install
 from module.util import cmake_build, cmake_config, cmake_flags_B, cmake_install
 from module.util import meson_build, meson_config, meson_flags_B, meson_install
 from module.util import xmake_build, xmake_config, xmake_install
+
+def _strip_dll_tls(ver: BranchProfile, dir: Path):
+  if ver.min_os >= Version('3.9999+4.10'):
+    return
+  for dll in sorted(dir.rglob('*.dll')):
+    strip_pe_tls_directory(dll)
 
 def build_ABB_test_driver(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   ensure(paths.layer_ABB.test_driver)
@@ -34,6 +40,8 @@ def build_ABB_test_driver(ver: BranchProfile, paths: ProjectPaths, config: argpa
     f'-DDEBUG_BUILD_DIR="{debug_build_dir}"',
     f'-DRELEASE_BUILD_DIR="{release_build_dir}"',
   ]
+  if ver.native_tls:
+    flags.append('-DNATIVE_TLS')
   if ver.utf8_thunk:
     flags.append('-DENABLE_UTF8')
 
@@ -101,6 +109,13 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
     build_dir = paths.src_dir.binutils / 'build-ABB'
     ensure(build_dir)
 
+    config_flags: List[str] = []
+
+    if ver.nls:
+      config_flags.append('--enable-nls')
+    else:
+      config_flags.append('--disable-nls')
+
     configure(build_dir, [
       '--prefix=',
       f'--host={ver.target}',
@@ -112,13 +127,13 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
       # features
       '--disable-install-libbfd',
       '--disable-multilib',
-      '--enable-nls',
       # packages
       '--without-debuginfod',
       '--with-system-zlib',
+      *config_flags,
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-        optimize_for_speed = ver.opt_speed,
+        opt_lv = ver.opt_lv,
         lto = ver.profile_opt_lto,
       ),
       f'AR={ver.target}-gcc-ar',
@@ -131,6 +146,7 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
       'tooldir=',
       'install',
     ], jobs = 1)
+    _strip_dll_tls(ver, paths.layer_ABB.binutils)  # libdep.dll
 
   remove_info_main_menu(paths.layer_ABB.binutils)
 
@@ -186,7 +202,7 @@ def _crt0(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f'--with-default-msvcrt={ver.default_crt}',
       f'--with-default-win32-winnt=0x{max(ver.win32_winnt, 0x0400):04X}',
       *multilib_flags,
-      *cflags_B(optimize_for_speed = ver.opt_speed),
+      *cflags_B(opt_lv = ver.opt_lv),
       # create modern (short) import libraries
       # https://github.com/mingw-w64/mingw-w64/issues/149
       'DLLTOOL=dlltool-wrapper',
@@ -209,8 +225,6 @@ def _crt_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     thunk_src_dir = paths.in_tree_src_dir.thunk
 
     config_flags: List[str] = []
-    if ver.native_tls:
-      config_flags.append('--native-tls=y')
     if ver.min_os.major < 6:
       if ver.thunk_free:
         config_flags.append('--thunk-xp=n')
@@ -329,11 +343,12 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
       '--enable-static',
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-        optimize_for_speed = ver.opt_speed,
+        opt_lv = ver.opt_lv,
       ),
     ])
     make_default(build_dir, config.jobs)
     make_destdir_install(build_dir, paths.layer_ABB.winpthreads)
+    _strip_dll_tls(ver, paths.layer_ABB.winpthreads)
 
   base_prefix = paths.layer_ABB.winpthreads
   shared_prefix = paths.layer_ABB.winpthreads_shared
@@ -386,7 +401,7 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
         '--prefix', '/',
         *meson_flags_B(
           cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-          optimize_for_speed = ver.opt_speed,
+          opt_lv = ver.opt_lv,
         ),
       ],
       build_dir = build_dir,
@@ -433,7 +448,7 @@ def _nowide(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
         '-DCMAKE_INSTALL_PREFIX=',
         '-DBUILD_SHARED_LIBS=OFF',
         *cmake_flags_B(
-          optimize_for_speed = ver.opt_speed,
+          opt_lv = ver.opt_lv,
         ),
       ],
       build_dir = build_dir,
@@ -465,7 +480,7 @@ def _nowide(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
         '-DCMAKE_INSTALL_PREFIX=',
         '-DBUILD_SHARED_LIBS=ON',
         *cmake_flags_B(
-          optimize_for_speed = ver.opt_speed,
+          opt_lv = ver.opt_lv,
         ),
       ],
       build_dir = build_dir,
@@ -520,9 +535,17 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     if ver.utf8_thunk:
       config_flags.append('--disable-win32-utf8-manifest')
     if ver.native_tls:
-      config_flags.append('--enable-tls=yes')
+      config_flags.append('--enable-tls')
     else:
-      config_flags.append('--enable-tls=no')
+      config_flags.append('--disable-tls')
+    if ver.lang_lto:
+      config_flags.append('--enable-lto')
+    else:
+      config_flags.append('--disable-lto')
+    if ver.nls:
+      config_flags.append('--enable-nls')
+    else:
+      config_flags.append('--disable-nls')
 
     configure(build_dir, [
       '--prefix=',
@@ -541,7 +564,6 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--disable-libmpx',
       '--disable-libstdcxx-pch',
       '--disable-multilib',
-      '--enable-nls',
       f'--enable-threads={ver.thread}',
       '--disable-win32-registry',
       # packages
@@ -551,15 +573,16 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--with-system-zlib',
       '--with-tune=generic',
       *config_flags,
+      *cflags_A('_FOR_BUILD'),
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-        optimize_for_speed = ver.opt_speed,
+        opt_lv = ver.opt_lv,
         lto = ver.profile_opt_lto,
       ),
       *cflags_B('_FOR_TARGET',
         # CPPFLAGS_FOR_TARGET is not passed
         common_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-        optimize_for_speed = ver.opt_speed,
+        opt_lv = ver.opt_lv,
       ),
       f'AR={ver.target}-gcc-ar',
       f'RANLIB={ver.target}-gcc-ranlib',
@@ -569,6 +592,7 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f'DESTDIR={paths.layer_ABB.gcc}',
       'install-host',
     ], jobs = 1)
+    _strip_dll_tls(ver, paths.layer_ABB.gcc)  # liblto_plugin.dll
 
 def _gcc_2(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   v = Version(ver.gcc)
@@ -597,6 +621,7 @@ def _gcc_2(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f'DESTDIR={paths.layer_ABB.gcc_lib}',
       'install-target',
     ], jobs = 1)
+    _strip_dll_tls(ver, paths.layer_ABB.gcc_lib)
 
     # add `print.o` to `libstdc++.a`, allowing `<print>` without `-lstdc++exp`
     # it's okay since we only keep ABI stable in a major version
@@ -664,7 +689,7 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
         # workaround: bfd and gnulib disagree about i686 time_t
         '-D__MINGW_USE_VC2005_COMPAT',
       ],
-      optimize_for_speed = ver.opt_speed,
+      opt_lv = ver.opt_lv,
     )
 
     configure(build_dir, [
@@ -749,7 +774,14 @@ def _gmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     build_dir = paths.src_dir.make / 'build-ABB'
     ensure(build_dir)
 
-    c_extra = []
+    config_flags: List[str] = []
+
+    if ver.nls:
+      config_flags.append('--enable-nls')
+    else:
+      config_flags.append('--disable-nls')
+
+    c_extra: List[str] = []
 
     # GCC 15 defaults to C23, in which `foo()` means `foo(void)` instead of `foo(...)`.
     if v_gcc.major >= 15 and v < Version('4.5'):
@@ -760,11 +792,11 @@ def _gmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--program-prefix=mingw32-',
       f'--host={ver.target}',
       f'--build={config.build}',
-      '--enable-nls',
+      *config_flags,
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
         c_extra = c_extra,
-        optimize_for_speed = ver.opt_speed,
+        opt_lv = ver.opt_lv,
       ),
     ])
     make_default(build_dir, config.jobs)
@@ -799,7 +831,7 @@ def _pkgconf(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace
         '-Dtests=disabled',
         *meson_flags_B(
           cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-          optimize_for_speed = ver.opt_speed,
+          opt_lv = ver.opt_lv,
         ),
       ],
       build_dir = build_dir,

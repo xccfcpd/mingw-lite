@@ -20,14 +20,8 @@ int wmain(int argc, wchar_t *argv[]) {
       L"--plat=mingw",
       (L"--arch=" XMAKE_ARCH),
       L"--builddir=build-shared",
-      lt_win98() ? L"--dlopen=n" : L"--dlopen=y",
-      lt_win98() ? L"--lto=n" : L"--lto=y",
-#ifdef ENABLE_UTF8
-      is_nt() ? L"--utf8=y" : L"--utf8=n",
-#else
-      is_utf8_acp() ? L"--utf8=y" : L"--utf8=n",
-#endif
-      lt_win98() ? L"--ldflags=-fno-lto" : NULL,
+      dlopen_tls_ok() ? L"--dlopen=y" : L"--dlopen=n",
+      path_utf8_ok() ? L"--utf8=y" : L"--utf8=n",
       NULL,
   };
   HANDLE xmake_config_process = spawn(xmake_config_argv);
