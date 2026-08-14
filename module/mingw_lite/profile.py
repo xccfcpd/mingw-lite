@@ -242,7 +242,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     rev = '1.1',
 
     abi_frozen = True,
-    branch_opt_lv = OptLv.Os,
+    branch_opt_lv = OptLv.O2,
     iconv_win32 = False,
     lto_zstd = False,
     native_tls = False,
@@ -258,7 +258,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     # freeze: 2024-12-21
     binutils = '2.43.1',
     expat = '2.6.4',
-    gdb = '15.2',
+    gdb = '17.2',
     gmp = '6.3.0',
     iconv = '1.18',
     isl = '0.27',
