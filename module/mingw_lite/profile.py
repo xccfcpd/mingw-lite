@@ -50,8 +50,8 @@ class BranchVersions:
   display_version: Optional[str] = None
 
   meson: str = '1.11.2'
-  setuptools: str = '83.0.0'
-  xmake: str = '3.0.9'
+  setuptools: str = '84.0.0'
+  xmake: str = '3.1.0'
 
 @dataclass
 class ProfileInfo:
@@ -97,6 +97,12 @@ class BranchProfile(BranchVersions, ProfileInfo):
       return False
     return True
 
+  @property
+  def lto_bigobj(self) -> bool:
+    # liblto_plugin (libiberty simple-object-coff.c) gained PE BigObj COFF
+    # support in GCC 16; older toolchains cannot link -flto -Wa,-mbig-obj.
+    return self.lang_lto and Version(self.gcc).major >= 16
+
 BRANCHES: Dict[str, BranchVersions] = {
   'next': BranchVersions(
     gcc = '17-20260809',
@@ -117,7 +123,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     nowide = '11.3.1',
 
     binutils = '2.47',
-    expat = '2.8.2',
+    expat = '2.8.3',
     gdb = '17.2',
     gmp = '6.3.0',
     iconv = '1.19',
@@ -132,9 +138,9 @@ BRANCHES: Dict[str, BranchVersions] = {
     zstd = '1.5.7',
   ),
   'current': BranchVersions(
-    gcc = '16-20260808',
+    gcc = '16-20260815',
     rev = '0',
-    display_version = 'current-16-20260808',
+    display_version = 'current-16-20260815',
 
     abi_frozen = False,
     branch_opt_lv = OptLv.O2,
@@ -150,7 +156,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     nowide = '11.3.1',
 
     binutils = '2.47',
-    expat = '2.8.2',
+    expat = '2.8.3',
     gdb = '17.2',
     gmp = '6.3.0',
     iconv = '1.19',
@@ -166,7 +172,7 @@ BRANCHES: Dict[str, BranchVersions] = {
   ),
   '16': BranchVersions(
     gcc = '16.2.0',
-    rev = '0.1',
+    rev = '1.1',
 
     abi_frozen = False,
     branch_opt_lv = OptLv.O2,
@@ -177,12 +183,13 @@ BRANCHES: Dict[str, BranchVersions] = {
     thunk_free_os = Version('6.0'),
     utf8_thunk = True,
 
+    # ABI critical: 2026-08-07
     mcfgthread = '2.4-ga.2',
     mingw = '14.0.0',
     nowide = '11.3.1',
 
     binutils = '2.47',
-    expat = '2.8.2',
+    expat = '2.8.3',
     gdb = '17.2',
     gmp = '6.3.0',
     iconv = '1.19',
@@ -198,7 +205,7 @@ BRANCHES: Dict[str, BranchVersions] = {
   ),
   '15': BranchVersions(
     gcc = '15.3.0',
-    rev = '0.1',
+    rev = '1.1',
 
     abi_frozen = True,
     branch_opt_lv = OptLv.Os,
@@ -232,7 +239,7 @@ BRANCHES: Dict[str, BranchVersions] = {
   ),
   '14': BranchVersions(
     gcc = '14.4.0',
-    rev = '0.1',
+    rev = '1.1',
 
     abi_frozen = True,
     branch_opt_lv = OptLv.O2,
@@ -266,7 +273,7 @@ BRANCHES: Dict[str, BranchVersions] = {
   ),
   '13': BranchVersions(
     gcc = '13.4.0',
-    rev = '7.1',
+    rev = '8.1',
 
     abi_frozen = True,
     branch_opt_lv = OptLv.Os,
@@ -295,7 +302,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     nowide = '11.3.0',  # 11.3.1 is not ABI compatible
     pdcurses = '3.9',
     pkgconf = '2.1.1',
-    python = '3.12.13',
+    python = '3.12.14',
     zlib_net = '1.3.2',
     zstd = '1.5.7',
   ),
